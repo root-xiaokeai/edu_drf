@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import os
 import sys
 import datetime
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
@@ -44,6 +45,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'home',
     'user',
+    'cart',
+    'course',
+    'payments',
+    "django_filters",
+    'ckeditor',  # 富文本编辑器
+    'ckeditor_uploader',  # 富文本编辑器的上传模块
 
 ]
 
@@ -84,12 +91,12 @@ WSGI_APPLICATION = 'edu_api.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',     # 数据库引擎
-        'NAME': '2003',                           # 数据库名
-        'USER': 'root',						    # 用户名
-        'PASSWORD': '123456',					# 密码
-        'HOST':'localhost',						# 主机ip
-        'PORT':3306,						    # 端口号
+        'ENGINE': 'django.db.backends.mysql',  # 数据库引擎
+        'NAME': '2003',  # 数据库名
+        'USER': 'root',  # 用户名
+        'PASSWORD': '123456',  # 密码
+        'HOST': '127.0.0.1',  # 主机ip
+        'PORT': 3306,  # 端口号
         # 'ATOMIC_REQUESTS':True                  #事务
     }
 }
@@ -123,7 +130,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
@@ -133,6 +140,14 @@ STATIC_URL = '/static/'
 MEDIA_URL = "/media/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# jwt配置
+JWT_AUTH={
+    # 有效时间
+    'JWT_EXPIRATION_DELTA':datetime.timedelta(seconds=300000),
+
+
+}
 
 # 允许跨域请求
 CORS_ORIGIN_ALLOW_ALL = True
@@ -208,3 +223,65 @@ AUTH_USER_MODEL = 'user.UserInfo'
 AUTHENTICATION_BACKENDS = [
     'user.utils.UserAuthBackend',
 ]
+
+# django 连接redis设置
+CACHES = {
+    # 默认库
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 连接的redis所在服务的端口以及ip
+        "LOCATION": "redis://127.0.0.1:6379/0",
+        # 使用客户端的方式
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+
+    # 验证码储存位置
+    "sms_code": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 连接的redis所在服务的端口以及ip
+        "LOCATION": "redis://127.0.0.1:6379/10",
+        # 使用客户端的方式
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+
+    # 购物车储存位置
+    "cart": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # 连接的redis所在服务的端口以及ip
+        "LOCATION": "redis://127.0.0.1:6379/9",
+        # 使用客户端的方式
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+}
+
+KEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',  # 展示哪些工具栏
+        'height': 300,  # 编辑器的高度
+        'width': 300,
+    },
+}
+CKEDITOR_UPLOAD_PATH = ''
+
+# 支付宝配置信息
+ALIAPY_CONFIG = {
+    # "gateway_url": "https://openapi.alipay.com/gateway.do?", # 真实支付宝网关地址
+    "gateway_url": "https://openapi.alipaydev.com/gateway.do?",  # 沙箱支付宝网关地址
+    "appid": "2016102200738366",
+    "app_notify_url": None,
+    "app_private_key_path": open(os.path.join(BASE_DIR, "apps/payments/keys/app_private_key.pem")).read(),
+    "alipay_public_key_path": open(os.path.join(BASE_DIR, "apps/payments/keys/app_private_key.pem")).read(),
+    "sign_type": "RSA2",
+    "debug": False,
+    # "return_url": "http://www.baizhistore.cn:8080/payments/result",  # 同步回调地址
+    "return_url": "http://localhost:8080/payments/result",  # 同步回调地址
+    "notify_url": "http://api.baizhistore.cn:8000/payments/result",  # 异步结果通知
+}
+# 买家账号
+# ktwiqh1401@sandbox.com

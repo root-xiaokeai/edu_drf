@@ -2,7 +2,7 @@ import re
 from rest_framework import serializers
 from user.models import *
 from django.contrib.auth.hashers import make_password
-
+from django_redis import get_redis_connection
 
 class UserModelSerializer(serializers.ModelSerializer):
     token = serializers.CharField(max_length=1024, read_only=True, help_text="用户token")
@@ -37,15 +37,17 @@ class UserModelSerializer(serializers.ModelSerializer):
         if user:
             raise serializers.ValidationError("当前手机号已经被注册")
 
-        #  验证手机号短信验证码是否正确
-        # phone_code=attrs.session.get('code')
-        # print(phone_code)
-        if "123456" != sms_code:
+
+        # 验证手机号短信验证码是否正确
+        redis_connection = get_redis_connection("sms_code")
+        # 从redis中取出数据
+        phone_code = redis_connection.get("mobile_%s" % phone)
+        if phone_code.decode()!= sms_code:
             # 为了防止暴力破解 可以再次设置一个手机号只能验证 n次  累加
             raise serializers.ValidationError("验证码不一致")
 
         else:
-            # attrs.session.clear()  # 清除数据库中的session_data的数据
+
             return attrs
 
     def create(self, validated_data):
@@ -72,5 +74,4 @@ class UserModelSerializer(serializers.ModelSerializer):
 
         payload = jwt_payload_handler(user)
         user.token = jwt_encode_handler(payload)
-        print(user)
         return user

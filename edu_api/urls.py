@@ -22,7 +22,12 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^media/(?P<path>.*)', serve, {"document_root": settings.MEDIA_ROOT}),
     path('user/',include('home.urls')),
-    path('user1/',include('user.urls'))
+    path('user1/',include('user.urls')),
+    path('course/',include('course.urls')),
+    # 富文本编辑器的路由
+    path("ckeditor/", include("ckeditor_uploader.urls")),
+    path('cart/',include('cart.urls')),
+    path('payments/',include('payments.urls'))
 ]
 # from django.views.static import serve
 # from django.conf import settings
